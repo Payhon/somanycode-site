@@ -66,7 +66,7 @@ async function refreshGitHubStats(projectId: string, githubRepo: string | null, 
   const fresh = await fetchGitHubRepo(githubRepo);
   if (!fresh) return null;
 
-  const updated = await prisma.sourceProject.update({
+  await prisma.sourceProject.update({
     where: { id: projectId },
     data: {
       stars: fresh.stargazers_count,
@@ -76,7 +76,11 @@ async function refreshGitHubStats(projectId: string, githubRepo: string | null, 
     },
   });
 
-  return updated;
+  // Re-fetch with category relation
+  return await prisma.sourceProject.findUnique({
+    where: { id: projectId },
+    include: { category: true },
+  });
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

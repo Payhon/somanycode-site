@@ -1,0 +1,4 @@
+fix: refreshGitHubStats returns project with category relation
+
+- Fixed TypeScript error: refreshGitHubStats now re-fetches with include: { category: true }
+- Fixes 'Property category is missing' type error in source/[slug]/page.tsx
