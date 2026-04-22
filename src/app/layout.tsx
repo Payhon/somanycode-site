@@ -65,10 +65,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: undefined, // Add Google Search Console verification code here
-    baidu: undefined,  // Add Baidu verification code here
-  },
+  // verification: {
+  //   google: "your-google-verification-code",
+  // },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
