@@ -9,6 +9,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "https://somanycode.com";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await prisma.sourceProject.findUnique({
@@ -16,9 +20,47 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     include: { category: true },
   });
   if (!project) return { title: "项目未找到" };
+
+  const title = `${project.name} - ${project.primaryLanguage || "开源项目"} - 多码网`;
+  const description = project.description
+    ? `${project.description} | Stars: ${project.stars?.toLocaleString() || 0} | Forks: ${project.forks?.toLocaleString() || 0} | 收录于多码网开源导航`
+    : `${project.name} 开源项目详情 - 多码网收录了海量优质开源项目，助你快速找到需要的开发资源。`;
+
   return {
-    title: `${project.name} - 多码网`,
-    description: project.description || `${project.name} 开源项目详情`,
+    title,
+    description,
+    keywords: [
+      project.name,
+      project.primaryLanguage || "",
+      project.category.name,
+      ...(project.tags ? project.tags.split(",") : []),
+      "开源项目",
+      "GitHub",
+      "代码分享",
+    ].filter(Boolean).join(", "),
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `${SITE_URL}/source/${slug}`,
+      siteName: "多码网",
+      locale: "zh_CN",
+      images: project.screenshotUrl
+        ? [{ url: project.screenshotUrl, alt: `${project.name} 截图` }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `${SITE_URL}/source/${slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -45,8 +87,39 @@ export default async function SourceProjectPage({ params }: { params: Promise<{ 
 
   const tags = project.tags ? project.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
 
+  // Schema.org SoftwareApplication JSON-LD
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: project.name,
+    description: project.description || `${project.name} 开源项目`,
+    applicationCategory: project.type || "DeveloperApplication",
+    operatingSystem: "Any",
+    softwareVersion: "latest",
+    url: project.url || project.githubUrl,
+    codeRepository: project.githubUrl,
+    programmingLanguage: project.primaryLanguage || undefined,
+    license: project.license || undefined,
+    aggregateRating: project.stars && project.stars > 0 ? {
+      "@type": "AggregateRating",
+      ratingValue: "5",
+      ratingCount: project.stars.toString(),
+    } : undefined,
+    datePublished: project.createdAt.toISOString(),
+    dateModified: project.updatedAt.toISOString(),
+    author: {
+      "@type": "Organization",
+      name: project.githubRepo?.split("/")[0] || "Unknown",
+    },
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <Button variant="ghost" size="sm" asChild className="mb-4">
         <Link href={`/source-category/${project.category.slug}`}>
           <ArrowLeft className="mr-1 h-4 w-4" />

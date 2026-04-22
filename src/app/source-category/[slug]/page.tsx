@@ -8,13 +8,47 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : "https://somanycode.com";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const category = await prisma.sourceCategory.findUnique({ where: { slug } });
   if (!category) return { title: "分类未找到" };
+
+  const title = `${category.name} 开源项目 - 多码网`;
+  const description = category.description
+    ? `${category.description} | 多码网收录了海量 ${category.name} 领域的优质开源项目，按 Stars 排序，助你快速找到需要的开发资源。`
+    : `多码网 ${category.name} 分类收录了该领域的优质开源项目，按 GitHub Stars 排序展示。`;
+
   return {
-    title: `${category.name} - 多码网`,
-    description: category.description,
+    title,
+    description,
+    keywords: [
+      category.name,
+      "开源项目",
+      "GitHub",
+      "代码分享",
+      "开源导航",
+      "developer tools",
+    ].join(", "),
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `${SITE_URL}/source-category/${slug}`,
+      siteName: "多码网",
+      locale: "zh_CN",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `${SITE_URL}/source-category/${slug}`,
+    },
   };
 }
 
