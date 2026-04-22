@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+
+  <!-- Block 1: top-left, cyan -->
+  <rect x="130" y="110" width="92" height="92" rx="23" ry="23" fill="#00d4ff" opacity="0.95"/>
+  <polygon points="170,145 170,167 152,156" fill="white" opacity="0.7"/>
+
+  <!-- Block 2: top-right, blue -->
+  <rect x="250" y="150" width="92" height="92" rx="23" ry="23" fill="#00b4d8" opacity="0.95"/>
+  <circle cx="296" cy="196" r="12" fill="white" opacity="0.7"/>
+
+  <!-- Block 3: bottom-left, darker blue -->
+  <rect x="170" y="230" width="92" height="92" rx="23" ry="23" fill="#0077b6" opacity="0.95"/>
+  <polygon points="230,265 230,287 212,276" fill="white" opacity="0.7" transform="rotate(90 221 276)"/>
+
+  <!-- Block 4: bottom-right, deepest blue -->
+  <rect x="290" y="270" width="92" height="92" rx="23" ry="23" fill="#023e8a" opacity="0.95"/>
+  <polygon points="330,305 330,327 348,316" fill="white" opacity="0.7"/>
+</svg>

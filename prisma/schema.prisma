@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============== Awesome 合集系统 ==============
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  projects    Project[]
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  content     String?   @db.Text
+  githubRepo  String?
+  stars       Int      @default(0)
+  tags        String   @default("")
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([title])
+}
+
+// ============== 源码项目分类系统 ==============
+model SourceCategory {
+  id          String          @id @default(cuid())
+  name        String          @unique
+  slug        String          @unique
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int             @default(0)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  projects    SourceProject[]
+}
+
+model SourceProject {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  name            String
+  description     String?
+  url             String?        // 项目官网/演示链接
+  githubUrl       String?        // GitHub 链接
+  githubRepo      String?        // owner/repo 格式
+  license         String?        // 开源协议
+  primaryLanguage String?        // 主要编程语言
+  stars           Int?
+  forks           Int?
+  openIssues      Int?
+  categoryId      String
+  category        SourceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags            String?        // 逗号分隔的标签
+  type            String?        // 性质: library, framework, tool, app, platform, cli, plugin, theme, etc.
+  readmeContent   String?  @db.Text        // README 内容
+  screenshotUrl   String?        // 截图URL
+  isActive        Boolean        @default(true)
+  fetchedAt       DateTime?      // 最后抓取时间
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([name])
+  @@index([githubRepo])
+}
+
+// ============== 管理后台 ==============
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
