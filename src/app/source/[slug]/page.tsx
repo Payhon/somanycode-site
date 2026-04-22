@@ -13,6 +13,72 @@ const SITE_URL = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "https://somanycode.com";
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+interface GitHubRepoData {
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  updated_at: string;
+}
+
+async function fetchGitHubRepo(repo: string): Promise<GitHubRepoData | null> {
+  try {
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github.v3+json",
+    };
+    if (GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+    }
+
+    const res = await fetch(`https://api.github.com/repos/${repo}`, {
+      headers,
+      next: { revalidate: 0 },
+    });
+
+    if (!res.ok) {
+      console.error(`GitHub API error for ${repo}: ${res.status}`);
+      return null;
+    }
+
+    return await res.json();
+  } catch (err) {
+    console.error(`Failed to fetch GitHub data for ${repo}:`, err);
+    return null;
+  }
+}
+
+async function refreshGitHubStats(projectId: string, githubRepo: string | null, fetchedAt: Date | null) {
+  if (!githubRepo) return null;
+
+  // 如果 6 小时内更新过，跳过
+  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  if (fetchedAt && Date.now() - new Date(fetchedAt).getTime() < SIX_HOURS) {
+    return null;
+  }
+
+  // 如果没有 GITHUB_TOKEN，跳过（避免 rate limit）
+  if (!GITHUB_TOKEN) {
+    console.log(`Skipping refresh for ${githubRepo}: no GITHUB_TOKEN`);
+    return null;
+  }
+
+  const fresh = await fetchGitHubRepo(githubRepo);
+  if (!fresh) return null;
+
+  const updated = await prisma.sourceProject.update({
+    where: { id: projectId },
+    data: {
+      stars: fresh.stargazers_count,
+      forks: fresh.forks_count,
+      openIssues: fresh.open_issues_count,
+      fetchedAt: new Date(),
+    },
+  });
+
+  return updated;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const project = await prisma.sourceProject.findUnique({
@@ -66,13 +132,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function SourceProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = await prisma.sourceProject.findUnique({
+  let project = await prisma.sourceProject.findUnique({
     where: { slug },
     include: { category: true },
   });
 
   if (!project) {
     notFound();
+  }
+
+  // 自动刷新 GitHub 统计数据（每 6 小时一次）
+  const refreshed = await refreshGitHubStats(
+    project.id,
+    project.githubRepo,
+    project.fetchedAt
+  );
+  if (refreshed) {
+    project = refreshed;
   }
 
   const relatedProjects = await prisma.sourceProject.findMany({
