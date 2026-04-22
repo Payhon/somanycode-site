@@ -1,9 +1,5 @@
 {
   "buildCommand": "prisma generate && prisma migrate deploy && next build",
   "installCommand": "npm install",
-  "framework": "nextjs",
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "ADMIN_PASSWORD": "@admin_password"
-  }
+  "framework": "nextjs"
 }
