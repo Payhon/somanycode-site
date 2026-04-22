@@ -66,11 +66,26 @@ export default async function HomePage() {
     include: { _count: { select: { projects: true } } },
   });
 
-  const totalProjects = await prisma.project.count();
+  const sourceCategories = await prisma.sourceCategory.findMany({
+    orderBy: { sortOrder: "asc" },
+    include: { _count: { select: { projects: true } } },
+  });
+
+  const totalAwesome = await prisma.project.count();
+  const totalSourceProjects = await prisma.sourceProject.count({
+    where: { isActive: true },
+  });
 
   const recentProjects = await prisma.project.findMany({
     take: 8,
     orderBy: { createdAt: "desc" },
+    include: { category: true },
+  });
+
+  const recentSourceProjects = await prisma.sourceProject.findMany({
+    where: { isActive: true },
+    take: 8,
+    orderBy: { stars: "desc" },
     include: { category: true },
   });
 
@@ -83,7 +98,7 @@ export default async function HomePage() {
             发现优质开源项目
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            多码网是一个免费公益的代码项目分享网站，收录了 {totalProjects}+ 个精选开源项目与 Awesome 列表，助你快速找到需要的开发资源。
+            多码网是一个免费公益的代码项目分享网站，收录了 {totalSourceProjects.toLocaleString()}+ 个开源源码项目与 {totalAwesome}+ 个 Awesome 精选合集，助你快速找到需要的开发资源。
           </p>
           <form action="/search" className="max-w-xl mx-auto flex gap-2">
             <div className="relative flex-1">
@@ -118,13 +133,19 @@ export default async function HomePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">{totalProjects}</div>
-              <div className="text-sm text-muted-foreground mt-1">收录项目</div>
+              <div className="text-3xl font-bold text-primary">{totalSourceProjects.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground mt-1">收录源码项目</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">{categories.length}</div>
+              <div className="text-3xl font-bold text-primary">{totalAwesome.toLocaleString()}</div>
+              <div className="text-sm text-muted-foreground mt-1">Awesome 合集</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="text-3xl font-bold text-primary">{categories.length + sourceCategories.length}</div>
               <div className="text-sm text-muted-foreground mt-1">分类目录</div>
             </CardContent>
           </Card>
@@ -134,12 +155,88 @@ export default async function HomePage() {
               <div className="text-sm text-muted-foreground mt-1">免费开源</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="text-3xl font-bold text-primary">∞</div>
-              <div className="text-sm text-muted-foreground mt-1">持续更新</div>
-            </CardContent>
-          </Card>
+        </div>
+      </section>
+
+      {/* Source Categories */}
+      <section className="container mx-auto px-4">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">源码分类</h2>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/source-categories">
+              查看全部 <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {sourceCategories.map((cat) => (
+            <Link key={cat.id} href={`/source-category/${cat.slug}`}>
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer border">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div className={`p-2.5 rounded-lg ${colorMap[cat.color || "gray"]}`}>
+                      {iconMap[cat.icon || "Box"]}
+                    </div>
+                    <Badge variant="secondary">{cat._count.projects}</Badge>
+                  </div>
+                  <h3 className="font-semibold mt-3">{cat.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {cat.description}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Source Projects - Trending */}
+      <section className="container mx-auto px-4">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Star className="h-5 w-5" />
+            热门源码项目
+          </h2>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/source-categories">
+              查看全部 <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {recentSourceProjects.map((project) => (
+            <Link key={project.id} href={`/source/${project.slug}`}>
+              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      {project.category.name}
+                    </Badge>
+                    {project.primaryLanguage && (
+                      <Badge variant="secondary" className="text-xs">
+                        {project.primaryLanguage}
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="font-semibold line-clamp-1">{project.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    {project.description || "暂无描述"}
+                  </p>
+                  <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                    {project.stars !== null && project.stars > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Star className="h-3 w-3" />
+                        {project.stars.toLocaleString()}
+                      </span>
+                    )}
+                    {project.githubRepo && (
+                      <span className="truncate">{project.githubRepo}</span>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -180,7 +277,7 @@ export default async function HomePage() {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            热门推荐
+            最新 Awesome 合集
           </h2>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/projects">
