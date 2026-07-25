@@ -135,11 +135,11 @@ export default async function AgentAtlasPage({
                   name="q"
                   placeholder="搜索资源、组织、描述..."
                   defaultValue={query}
-                  className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-emerald-500/50"
                 />
               </div>
               {selectedLayer && <input type="hidden" name="layer" value={selectedLayer} />}
-              <Button type="submit" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+              <Button type="submit" className="bg-emerald-600 hover:bg-emerald-500 text-white border-0">
                 搜索
               </Button>
             </form>
