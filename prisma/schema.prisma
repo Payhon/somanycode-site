@@ -91,3 +91,27 @@ model AdminSession {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+// ============== Agent 开发资源导航 ==============
+model AgentResource {
+  id          String   @id @default(cuid())
+  code        String   @unique  // 资源代码，如 Q3, DR
+  name        String
+  org         String?  // 组织/作者
+  type        String   // 开源/商业/源码可用
+  description String?
+  layer       String   // 技术层级：模型层、API 层、框架·服务端 等
+  license     String?  // 开源协议
+  lang        String?  // 编程语言
+  stars       String?  // GitHub stars（如 27.4K）
+  active      String?  // 活跃时间
+  tags        String?  // 逗号分隔的标签
+  site        String?  // 官网/文档链接
+  github      String?  // GitHub 链接
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([layer])
+  @@index([type])
+  @@index([code])
+}

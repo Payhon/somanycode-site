@@ -58,6 +58,12 @@ export function Navbar() {
               分类
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/agent-atlas">
+              <span className="mr-1">🤖</span>
+              Agent
+            </Link>
+          </Button>
         </nav>
 
         <Button
@@ -98,6 +104,12 @@ export function Navbar() {
               <Link href="/source-categories">
                 <Tag className="h-4 w-4 mr-2" />
                 分类
+              </Link>
+            </Button>
+            <Button variant="ghost" className="justify-start" asChild>
+              <Link href="/agent-atlas">
+                <span className="mr-2">🤖</span>
+                Agent
               </Link>
             </Button>
           </div>
