@@ -22,7 +22,7 @@ export function Footer() {
         </div>
         <div className="mt-4 pt-4 border-t text-center">
           <a
-            href="https://biean.miit.gov.cn"
+            href="https://beian.miit.gov.cn"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
