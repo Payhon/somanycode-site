@@ -20,6 +20,16 @@ export function Footer() {
             <Link href="https://github.com/payhon/awesome-cn" target="_blank" className="hover:text-foreground transition-colors">GitHub</Link>
           </div>
         </div>
+        <div className="mt-4 pt-4 border-t text-center">
+          <a
+            href="https://biean.miit.gov.cn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            粤ICP备2021089814号-1
+          </a>
+        </div>
       </div>
     </footer>
   );
